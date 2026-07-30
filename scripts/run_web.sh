@@ -25,5 +25,5 @@ for _ in $(seq 1 30); do
   sleep 0.2
 done
 
-echo "→ Iniciando Flutter web"
-flutter run -d chrome "$@"
+echo "→ Iniciando Flutter web en http://localhost:8080"
+flutter run -d chrome --web-hostname=localhost --web-port=8080 "$@"

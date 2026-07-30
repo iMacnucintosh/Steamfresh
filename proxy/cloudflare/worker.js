@@ -3,6 +3,7 @@
  *
  * Routes (same as tool/steam_proxy.dart):
  *   GET  /steam/<path>?...  → api.steampowered.com
+ *   GET  /store/<path>?...  → store.steampowered.com
  *   POST /openid/validate   → Steam OpenID check_authentication
  *
  * Deploy:
@@ -14,6 +15,7 @@
  */
 
 const STEAM_API = 'https://api.steampowered.com';
+const STEAM_STORE = 'https://store.steampowered.com';
 const STEAM_OPENID = 'https://steamcommunity.com/openid/login';
 
 const corsHeaders = {
@@ -34,13 +36,20 @@ export default {
       if (request.method === 'GET' && url.pathname.startsWith('/steam/')) {
         return await proxySteamApi(url, env);
       }
+      if (request.method === 'GET' && url.pathname.startsWith('/store/')) {
+        return await proxySteamStore(url);
+      }
       if (request.method === 'POST' && url.pathname === '/openid/validate') {
         return await validateOpenId(request);
       }
       return json(
         {
           error: 'Not found',
-          routes: ['GET /steam/<path>?query', 'POST /openid/validate'],
+          routes: [
+            'GET /steam/<path>?query',
+            'GET /store/<path>?query',
+            'POST /openid/validate',
+          ],
         },
         404,
       );
@@ -63,6 +72,19 @@ async function proxySteamApi(url, env) {
     target.searchParams.set('key', env.STEAM_API_KEY);
   }
 
+  return proxyJson(target);
+}
+
+async function proxySteamStore(url) {
+  const storePath = url.pathname.slice('/store'.length);
+  const target = new URL(`${STEAM_STORE}${storePath}`);
+  url.searchParams.forEach((value, key) => {
+    target.searchParams.set(key, value);
+  });
+  return proxyJson(target);
+}
+
+async function proxyJson(target) {
   const upstream = await fetch(target.toString(), {
     headers: { Accept: 'application/json' },
   });

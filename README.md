@@ -95,7 +95,7 @@ chmod +x scripts/run_web.sh
 ./scripts/run_web.sh
 ```
 
-El login redirige a Steam y vuelve a la misma URL. En desarrollo suele ser `http://localhost:XXXX`.
+El login redirige a Steam y vuelve a la misma URL. En desarrollo siempre es `http://localhost:8080`.
 
 ### PWA (Progressive Web App)
 

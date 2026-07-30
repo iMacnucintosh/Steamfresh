@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class SteamConfig {
   static const openIdEndpoint = 'https://steamcommunity.com/openid/login';
   static const apiBase = 'https://api.steampowered.com';
+  static const storeBase = 'https://store.steampowered.com';
 
   /// CORS proxy base URL for Flutter web.
   /// Local: `dart run tool/steam_proxy.dart` → http://localhost:8787
@@ -35,6 +36,14 @@ class SteamConfig {
       return '$proxyBase/steam$normalized';
     }
     return '$apiBase$normalized';
+  }
+
+  static String steamStoreUrl(String path) {
+    final normalized = path.startsWith('/') ? path : '/$path';
+    if (kIsWeb) {
+      return '$proxyBase/store$normalized';
+    }
+    return '$storeBase$normalized';
   }
 
   static String get openIdValidateUrl {

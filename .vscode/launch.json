@@ -7,19 +7,41 @@
         {
             "name": "steamfresh",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "args": [
+                "--web-hostname=localhost",
+                "--web-port=8080"
+            ]
+        },
+        {
+            "name": "steamfresh (chrome)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "chrome",
+            "args": [
+                "--web-hostname=localhost",
+                "--web-port=8080"
+            ]
         },
         {
             "name": "steamfresh (profile mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "flutterMode": "profile",
+            "args": [
+                "--web-hostname=localhost",
+                "--web-port=8080"
+            ]
         },
         {
             "name": "steamfresh (release mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "release"
+            "flutterMode": "release",
+            "args": [
+                "--web-hostname=localhost",
+                "--web-port=8080"
+            ]
         }
     ]
 }

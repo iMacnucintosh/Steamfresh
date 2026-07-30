@@ -9,6 +9,7 @@ import 'dart:io';
 
 const _port = 8787;
 const _steamApi = 'https://api.steampowered.com';
+const _steamStore = 'https://store.steampowered.com';
 const _steamOpenId = 'https://steamcommunity.com/openid/login';
 
 final _cors = {
@@ -18,9 +19,10 @@ final _cors = {
 };
 
 Future<void> main() async {
-  final server = await HttpServer.bind(InternetAddress.loopbackIPv4, _port);
+  final server = await _bindFixedPort(_port);
   stdout.writeln('SteamFresh proxy → http://localhost:$_port');
   stdout.writeln('  GET  /steam/<ISteamInterface>/...  → api.steampowered.com');
+  stdout.writeln('  GET  /store/<path>?...             → store.steampowered.com');
   stdout.writeln('  POST /openid/validate              → OpenID check_authentication');
 
   await for (final request in server) {
@@ -32,6 +34,46 @@ Future<void> main() async {
         _json(request.response, 500, {'error': e.toString()});
       }
     }
+  }
+}
+
+/// Always listens on [_port]. If something already holds it (often a previous
+/// proxy), free it and retry once.
+Future<HttpServer> _bindFixedPort(int port) async {
+  try {
+    return await HttpServer.bind(InternetAddress.loopbackIPv4, port);
+  } on SocketException catch (e) {
+    if (!_isAddressInUse(e)) rethrow;
+    stderr.writeln('Puerto $port ocupado — liberando proceso anterior…');
+    await _freePort(port);
+    return HttpServer.bind(InternetAddress.loopbackIPv4, port);
+  }
+}
+
+bool _isAddressInUse(SocketException e) {
+  final message = e.message.toLowerCase();
+  return e.osError?.errorCode == 98 || // EADDRINUSE (Linux)
+      message.contains('address already in use') ||
+      message.contains('failed to create server socket');
+}
+
+Future<void> _freePort(int port) async {
+  try {
+    final result = await Process.run('fuser', ['-k', '$port/tcp']);
+    if (result.exitCode != 0) {
+      // fuser may be missing; try lsof as fallback
+      final lsof = await Process.run('lsof', ['-t', '-iTCP:$port', '-sTCP:LISTEN']);
+      final pids = (lsof.stdout as String)
+          .split(RegExp(r'\s+'))
+          .where((p) => p.isNotEmpty)
+          .toList();
+      for (final pid in pids) {
+        await Process.run('kill', [pid]);
+      }
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+  } catch (_) {
+    // Best-effort; bind will fail again with a clear error if still occupied.
   }
 }
 
@@ -60,6 +102,11 @@ Future<void> _handle(HttpRequest request) async {
     return;
   }
 
+  if (request.method == 'GET' && path.startsWith('/store/')) {
+    await _proxySteamStore(request);
+    return;
+  }
+
   if (request.method == 'POST' && path == '/openid/validate') {
     await _validateOpenId(request);
     return;
@@ -69,6 +116,7 @@ Future<void> _handle(HttpRequest request) async {
     'error': 'Not found',
     'routes': [
       'GET /steam/<path>?query',
+      'GET /store/<path>?query',
       'POST /openid/validate',
     ],
   });
@@ -79,10 +127,22 @@ Future<void> _proxySteamApi(HttpRequest request) async {
   final target = Uri.parse('$_steamApi$steamPath').replace(
     queryParameters: request.uri.queryParameters,
   );
+  await _proxyGet(request, target);
+}
 
+Future<void> _proxySteamStore(HttpRequest request) async {
+  final storePath = request.uri.path.substring('/store'.length);
+  final target = Uri.parse('$_steamStore$storePath').replace(
+    queryParameters: request.uri.queryParameters,
+  );
+  await _proxyGet(request, target);
+}
+
+Future<void> _proxyGet(HttpRequest request, Uri target) async {
   final client = HttpClient();
   try {
     final upstream = await client.getUrl(target);
+    upstream.headers.set(HttpHeaders.acceptHeader, 'application/json');
     final upstreamResponse = await upstream.close();
     final body = await upstreamResponse.transform(utf8.decoder).join();
 
