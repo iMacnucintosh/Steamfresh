@@ -116,6 +116,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               : _error != null
                   ? _ErrorView(message: _error!, onRetry: _loadLibrary)
                   : CustomScrollView(
+                      scrollCacheExtent: 400,
                       slivers: [
                         SliverToBoxAdapter(child: _buildHeader(context)),
                         SliverToBoxAdapter(child: _buildToolbar(context)),
@@ -156,6 +157,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                                         ),
                                       ),
                                       childCount: _filteredGames.length,
+                                      addAutomaticKeepAlives: false,
                                     ),
                                   );
                                 }
@@ -181,6 +183,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                                       game: _filteredGames[index],
                                     ),
                                     childCount: _filteredGames.length,
+                                    addAutomaticKeepAlives: false,
                                   ),
                                 );
                               },

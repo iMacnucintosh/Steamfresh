@@ -63,7 +63,7 @@ jobs:
 
       - name: Build web
         run: |
-          flutter build web --release \
+          flutter build web --release --wasm \
             --base-href "${{ env.BASE_HREF }}" \
             --dart-define=STEAM_API_KEY=${{ secrets.STEAM_API_KEY }} \
             --dart-define=STEAM_PROXY=${{ steps.proxy.outputs.url }}

@@ -11,6 +11,10 @@ class GameCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final maxWidth = MediaQuery.sizeOf(context).width;
+    final memWidth = (maxWidth * dpr).clamp(320, 1200).round();
+
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -24,22 +28,22 @@ class GameCard extends StatelessWidget {
               child: CachedNetworkImage(
                 imageUrl: game.headerUrl,
                 fit: BoxFit.cover,
-                placeholder: (_, _) => Container(
+                fadeInDuration: Duration.zero,
+                fadeOutDuration: Duration.zero,
+                memCacheWidth: memWidth,
+                placeholder: (_, _) => const ColoredBox(color: AppTheme.steamMid),
+                errorWidget: (_, _, _) => ColoredBox(
                   color: AppTheme.steamMid,
-                  child: const Center(
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                  child: Center(
+                    child: game.iconHash.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: game.iconUrl,
+                            width: 64,
+                            height: 64,
+                            memCacheWidth: (64 * dpr).round(),
+                          )
+                        : const Icon(Icons.videogame_asset, size: 48),
                   ),
-                ),
-                errorWidget: (_, _, _) => Container(
-                  color: AppTheme.steamMid,
-                  alignment: Alignment.center,
-                  child: game.iconHash.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: game.iconUrl,
-                          width: 64,
-                          height: 64,
-                        )
-                      : const Icon(Icons.videogame_asset, size: 48),
                 ),
               ),
             ),
