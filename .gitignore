@@ -46,3 +46,9 @@ app.*.map.json
 
 # Secrets
 .env
+
+# Node / Cloudflare Worker
+**/node_modules/
+proxy/cloudflare/.wrangler/
+proxy/cloudflare/node_modules/
+.wrangler/
