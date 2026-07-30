@@ -108,9 +108,12 @@ class SteamApiService {
     final schema = await schemaFuture;
     final global = await globalFuture;
 
-    if (player.error != null && schema.isEmpty) {
+    // Without player progress we cannot know unlocks — don't invent a full
+    // locked list from schema (that inflated library-wide totals).
+    if (player.error != null) {
       return SteamAchievementsProgress(
         achievements: const [],
+        gameName: player.gameName,
         unavailableReason: player.error,
       );
     }
@@ -119,7 +122,7 @@ class SteamApiService {
       return SteamAchievementsProgress(
         achievements: const [],
         gameName: player.gameName,
-        unavailableReason: player.error ?? 'Este juego no tiene logros',
+        unavailableReason: 'Este juego no tiene logros',
       );
     }
 

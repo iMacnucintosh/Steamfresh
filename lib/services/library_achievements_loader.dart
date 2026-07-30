@@ -26,7 +26,6 @@ class LibraryAchievementsLoader {
 
     final total = ordered.length;
     var done = 0;
-    var unlockedCount = 0;
     var totalAchievements = 0;
     var gamesWithAchievements = 0;
     final unlocked = <LibraryAchievementEntry>[];
@@ -40,7 +39,8 @@ class LibraryAchievementsLoader {
               .compareTo(b.achievement.visibleName.toLowerCase());
         });
       return LibraryAchievementsSummary(
-        unlockedCount: unlockedCount,
+        // Prefer list length so the header always matches visible unlocks.
+        unlockedCount: unlocked.length,
         totalAchievements: totalAchievements,
         libraryGameCount: games.length,
         gamesWithAchievements: gamesWithAchievements,
@@ -66,15 +66,16 @@ class LibraryAchievementsLoader {
           if (isCancelled?.call() ?? false) return;
 
           if (progress.hasAchievements) {
+            final unlockedHere = [
+              for (final achievement in progress.achievements)
+                if (achievement.achieved) achievement,
+            ];
             gamesWithAchievements++;
             totalAchievements += progress.totalCount;
-            unlockedCount += progress.unlockedCount;
-            for (final achievement in progress.achievements) {
-              if (!achievement.achieved) continue;
-              unlocked.add(
+            unlocked.addAll([
+              for (final achievement in unlockedHere)
                 LibraryAchievementEntry(game: game, achievement: achievement),
-              );
-            }
+            ]);
           }
         } catch (_) {
           // Skip games that fail (private stats, rate limits, etc.).

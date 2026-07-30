@@ -130,7 +130,9 @@ class _SummaryHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${summary.unlockedCount} / ${summary.libraryGameCount}',
+            summary.totalAchievements > 0
+                ? '${summary.unlockedCount} / ${summary.totalAchievements}'
+                : '${summary.unlockedCount}',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w800,
                   color: AppTheme.steamAccent,
@@ -138,21 +140,22 @@ class _SummaryHeader extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'logros obtenidos / juegos en la biblioteca',
+            summary.totalAchievements > 0
+                ? 'logros obtenidos / logros totales'
+                : 'logros obtenidos',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppTheme.steamMuted,
                 ),
           ),
           const SizedBox(height: 12),
+          Text(
+            '${summary.libraryGameCount} juegos en la biblioteca'
+            '${summary.gamesWithAchievements > 0 ? ' · ${summary.gamesWithAchievements} con logros' : ''}',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppTheme.steamMuted,
+                ),
+          ),
           if (summary.totalAchievements > 0) ...[
-            Text(
-              '${summary.unlockedCount} de ${summary.totalAchievements} logros '
-              '(${(summary.progressRatio * 100).round()}%) en '
-              '${summary.gamesWithAchievements} juegos con logros',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.steamMuted,
-                  ),
-            ),
             const SizedBox(height: 8),
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
@@ -162,6 +165,13 @@ class _SummaryHeader extends StatelessWidget {
                 backgroundColor: AppTheme.steamMid.withValues(alpha: 0.5),
                 color: AppTheme.steamGreen,
               ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${(summary.progressRatio * 100).round()}% de los logros desbloqueados',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: AppTheme.steamMuted,
+                  ),
             ),
           ],
           if (loading) ...[
