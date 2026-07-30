@@ -5,8 +5,9 @@ class SteamConfig {
   static const openIdEndpoint = 'https://steamcommunity.com/openid/login';
   static const apiBase = 'https://api.steampowered.com';
 
-  /// Local Dart proxy that adds CORS headers for Flutter web.
-  /// Start with: `dart run tool/steam_proxy.dart`
+  /// CORS proxy base URL for Flutter web.
+  /// Local: `dart run tool/steam_proxy.dart` → http://localhost:8787
+  /// Production: Cloudflare Worker URL via --dart-define=STEAM_PROXY=...
   static const proxyBase = String.fromEnvironment(
     'STEAM_PROXY',
     defaultValue: 'http://localhost:8787',

@@ -1,0 +1,6 @@
+name = "steamfresh-proxy"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Optional: bind a custom route later.
+# routes = [{ pattern = "proxy.example.com/*", zone_name = "example.com" }]

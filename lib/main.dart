@@ -10,7 +10,11 @@ import 'utils/platform_redirect.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env');
+  try {
+    await dotenv.load(fileName: '.env', isOptional: true);
+  } catch (_) {
+    // Production builds can rely on --dart-define only.
+  }
 
   final authService = SteamAuthService();
   String? steamId;

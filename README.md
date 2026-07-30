@@ -28,9 +28,55 @@ Alternativa sin archivo `.env`:
 flutter run --dart-define=STEAM_API_KEY=tu_api_key_aqui
 ```
 
+## Despliegue (GitHub Pages)
+
+La web se publica en:
+**https://imacnucintosh.github.io/Steamfresh/**
+
+GitHub Pages no puede hablar con Steam directamente (CORS), así que hace falta un proxy pequeño en Cloudflare Workers.
+
+### 1. Proxy (una sola vez)
+
+```bash
+cd proxy/cloudflare
+npx wrangler login
+npx wrangler deploy
+npx wrangler secret put STEAM_API_KEY   # opcional pero recomendado
+```
+
+Anota la URL del worker, p. ej. `https://steamfresh-proxy.xxx.workers.dev`.
+
+### 2. Secrets del repositorio
+
+En GitHub → Settings → Secrets and variables → Actions:
+
+| Secret | Valor |
+|--------|--------|
+| `STEAM_API_KEY` | Tu API key de Steam |
+| `STEAM_PROXY` | URL del worker (sin `/` final) |
+
+O con CLI:
+
+```bash
+gh secret set STEAM_API_KEY
+gh secret set STEAM_PROXY
+```
+
+### 3. Activar Pages
+
+Settings → Pages → **Source: GitHub Actions**.
+
+Cada push a `main` ejecuta `.github/workflows/deploy-pages.yml` y publica el build.
+
+### 4. Probar
+
+Abre https://imacnucintosh.github.io/Steamfresh/ — login Steam y biblioteca.
+
+Detalle del proxy: [proxy/cloudflare/README.md](proxy/cloudflare/README.md).
+
 ## Ejecutar
 
-### Web
+### Web (local)
 
 El navegador bloquea las llamadas directas a Steam (CORS). Hay que arrancar el proxy local:
 
@@ -85,6 +131,7 @@ El login abre un WebView con OpenID de Steam.
 - Ordenación por tiempo jugado, actividad reciente o nombre
 - Tema oscuro estilo Steam
 - PWA instalable (web)
+- Deploy automático a GitHub Pages
 
 ## Próximos pasos
 

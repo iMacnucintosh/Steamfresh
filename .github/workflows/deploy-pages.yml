@@ -1,0 +1,85 @@
+# Deploy SteamFresh web to GitHub Pages.
+# Requires repository secrets:
+#   STEAM_API_KEY  — Steam Web API key
+#   STEAM_PROXY    — CORS proxy URL (e.g. https://steamfresh-proxy.you.workers.dev)
+
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: "3.44.2"
+  BASE_HREF: "/Steamfresh/"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Create .env for build
+        run: |
+          if [ -z "${{ secrets.STEAM_API_KEY }}" ]; then
+            echo "Missing repository secret STEAM_API_KEY" >&2
+            exit 1
+          fi
+          echo "STEAM_API_KEY=${{ secrets.STEAM_API_KEY }}" > .env
+
+      - name: Resolve Steam proxy URL
+        id: proxy
+        run: |
+          PROXY="${{ secrets.STEAM_PROXY }}"
+          if [ -z "$PROXY" ]; then
+            echo "Missing repository secret STEAM_PROXY" >&2
+            echo "Deploy the Cloudflare Worker in proxy/cloudflare and set STEAM_PROXY to its URL." >&2
+            exit 1
+          fi
+          # Trim trailing slash
+          PROXY="${PROXY%/}"
+          echo "url=$PROXY" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build web
+        run: |
+          flutter build web --release \
+            --base-href "${{ env.BASE_HREF }}" \
+            --dart-define=STEAM_API_KEY=${{ secrets.STEAM_API_KEY }} \
+            --dart-define=STEAM_PROXY=${{ steps.proxy.outputs.url }}
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
