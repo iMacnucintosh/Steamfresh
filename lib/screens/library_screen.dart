@@ -116,7 +116,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
               : _error != null
                   ? _ErrorView(message: _error!, onRetry: _loadLibrary)
                   : CustomScrollView(
-                      scrollCacheExtent: 400,
                       slivers: [
                         SliverToBoxAdapter(child: _buildHeader(context)),
                         SliverToBoxAdapter(child: _buildToolbar(context)),
