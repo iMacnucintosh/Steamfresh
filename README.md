@@ -51,6 +51,24 @@ chmod +x scripts/run_web.sh
 
 El login redirige a Steam y vuelve a la misma URL. En desarrollo suele ser `http://localhost:XXXX`.
 
+### PWA (Progressive Web App)
+
+La web está configurada como PWA instalable:
+
+- `web/manifest.json` — nombre, iconos, tema standalone
+- `web/sw.js` — service worker propio (caché del shell; la API de Steam no se cachea)
+- Metadatos iOS/Android para “Añadir a pantalla de inicio”
+
+Para probarla en local:
+
+```bash
+flutter build web
+dart run tool/steam_proxy.dart   # sigue haciendo falta el proxy para la API
+python3 -m http.server 8080 --directory build/web
+```
+
+Abre `http://localhost:8080` e instálala desde el icono ⊕ del navegador (Chrome/Edge) o “Añadir a pantalla de inicio” en móvil. En un dispositivo real hace falta **HTTPS** (o un túnel tipo Cloudflare/ngrok).
+
 ### Android
 
 ```bash
@@ -66,6 +84,7 @@ El login abre un WebView con OpenID de Steam.
 - Portadas, tiempo jugado y búsqueda
 - Ordenación por tiempo jugado, actividad reciente o nombre
 - Tema oscuro estilo Steam
+- PWA instalable (web)
 
 ## Próximos pasos
 
